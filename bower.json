@@ -2,14 +2,18 @@
   "name": "user-status",
   "main": "user-status.html",
   "dependencies": {
-    "polymer": "Polymer/polymer#^2.0.0"
+    "firebase": "4.5.0",
+    "polymer": "Polymer/polymer#^2.0.0",
+    "polymerfire": "firebase/polymerfire#master"
   },
   "devDependencies": {
     "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
     "web-component-tester": "Polymer/web-component-tester#^6.0.0",
-    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0",
+    "skeleton-auth": "FabricElements/skeleton-auth"
   },
   "resolutions": {
-    "polymer": "^2.0.0"
+    "polymer": "^2.0.0",
+    "polymerfire": "master"
   }
 }
