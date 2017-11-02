@@ -1,0 +1,39 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="user-status">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]!</h2>
+  </template>
+
+  <script>
+    /**
+     * `user-status`
+     *
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class UserStatus extends Polymer.Element {
+      static get is() {
+        return 'user-status';
+      }
+
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'user-status'
+          }
+        };
+      }
+    }
+
+    window.customElements.define(UserStatus.is, UserStatus);
+  </script>
+</dom-module>
