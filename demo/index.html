@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
@@ -10,21 +11,43 @@
 
   <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
   <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+  <link rel="import" href="../../polymer/lib/elements/dom-bind.html">
+  <link rel="import" href="../../polymer/lib/elements/dom-repeat.html">
+  <link rel="import" href="../../polymer/lib/elements/dom-if.html">
+  <link rel="import" href="../../polymerfire/polymerfire.html">
+  <link rel="import" href="../../skeleton-auth/skeleton-auth.html">
   <link rel="import" href="../user-status.html">
 
   <custom-style>
     <style is="custom-style" include="demo-pages-shared-styles">
+
+
     </style>
   </custom-style>
 </head>
+
 <body>
-<div class="vertical-section-container centered">
-  <h3>Basic user-status demo</h3>
-  <demo-snippet>
-    <template>
-      <user-status></user-status>
-    </template>
-  </demo-snippet>
-</div>
+  <firebase-app auth-domain="fabricelements.firebaseapp.com" database-url="https://fabricelements.firebaseio.com" api-key="AIzaSyCJRNdR0eodnswyi8MHCtF1YOjY235mhM8" storage-bucket="fabricelements.appspot.com" messaging-sender-id="908593247251" project-id="fabricelements"></firebase-app>
+  <div class="vertical-section-container centered">
+    <h3>Basic user-status demo</h3>
+    <dom-bind>
+      <template>
+        <firebase-auth signed-in="{{signedIn}}"
+                       user="{{user}}">
+        </firebase-auth>
+        <dom-if if="[[!signedIn]]">
+          <template>
+            <skeleton-auth google></skeleton-auth>
+          </template>
+      </dom-if>
+      </template>
+    </dom-bind>
+    <demo-snippet>
+      <template>
+        <user-status></user-status>
+      </template>
+    </demo-snippet>
+  </div>
 </body>
+
 </html>

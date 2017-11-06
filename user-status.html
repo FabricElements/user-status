@@ -1,4 +1,6 @@
 <link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymerfire/firebase-auth.html">
+<link rel="import" href="../polymerfire/polymerfire.html">
 
 <dom-module id="user-status">
   <template>
@@ -7,7 +9,9 @@
         display: block;
       }
     </style>
-    <h2>Hello [[prop1]]!</h2>
+    <firebase-auth signed-in="{{signedIn}}"
+                   user="{{user}}">
+    </firebase-auth>
   </template>
 
   <script>
@@ -20,20 +24,69 @@
      * @demo demo/index.html
      */
     class UserStatus extends Polymer.Element {
+      /**
+       * @return {string}
+       */
       static get is() {
         return 'user-status';
       }
 
+      /**
+       * @return {object}
+       */
       static get properties() {
         return {
-          prop1: {
-            type: String,
-            value: 'user-status'
-          }
+          status: {
+            type: Boolean,
+            value: false,
+            notify: true,
+            reflectToAttribute: true,
+          },
+          signedIn: {
+            type: Boolean,
+            value: false,
+          },
+          user: {
+            type: Object,
+            value: {},
+            observer: '_userObserver',
+          },
         };
+      }
+
+      /**
+       * User observer
+       *
+       * @param {object} user
+       * @private
+       */
+      _userObserver(user) {
+        if (!user) return;
+        // https://firebase.google.com/docs/firestore/solutions/presence
+        const userStatusDatabaseRef = firebase.database()
+          .ref(`/user-status/${user.uid}`);
+        const isOfflineForDatabase = {
+          state: 'offline',
+          last_changed: firebase.database.ServerValue.TIMESTAMP,
+        };
+        const isOnlineForDatabase = {
+          state: 'online',
+          last_changed: firebase.database.ServerValue.TIMESTAMP,
+        };
+        userStatusDatabaseRef.on('value', (snapshot) => {
+          if (snapshot.val().state !== 'online') {
+            userStatusDatabaseRef.set(isOnlineForDatabase).then(() => {
+              this.status = true;
+            });
+          }
+        });
+        userStatusDatabaseRef.onDisconnect().set(isOfflineForDatabase).then(() => {
+          this.status = false;
+        });
       }
     }
 
     window.customElements.define(UserStatus.is, UserStatus);
+
   </script>
 </dom-module>
