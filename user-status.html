@@ -1,6 +1,6 @@
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../polymerfire/firebase-auth.html">
-<link rel="import" href="../polymerfire/firebase-firestore-script.html">
+<link rel="import" href="../polymerfire/polymerfire.html">
 
 <dom-module id="user-status">
   <template>
@@ -32,7 +32,8 @@
           status: {
             type: Boolean,
             value: false,
-            notify: true
+            notify: true,
+            reflectToAttribute: true,
           },
           signedIn: {
             type: Boolean,
@@ -53,9 +54,7 @@
        */
       _userObserver(user) {
         if (!user) return;
-        const db = firebase.firestore();
-        const ref = db.collection('users-status').doc(user.uid);
-        console.log(user.uid);
+        // https://firebase.google.com/docs/firestore/solutions/presence
         // Create a reference to this user's specific status node.
         // This is where we will store data about being online/offline.
         const userStatusDatabaseRef = firebase.database().ref(`/user-status/${user.uid}`);
@@ -70,53 +69,17 @@
           state: "online",
           last_changed: firebase.database.ServerValue.TIMESTAMP,
         };
-        // Create a reference to the special ".info/connected" path in
-        // Realtime Database. This path returns `true` when connected
-        // and `false` when disconnected.
-        firebase.database().ref(".info/connected").on("value", function(snapshot) {
-          // If we're not currently connected, don't do anything.
-          if (snapshot.val() == false) {
-            return;
+        userStatusDatabaseRef.on("value", (snapshot) => {
+          if (snapshot.val().state !== 'online') {
+            userStatusDatabaseRef.set(isOnlineForDatabase).then(() => {
+              this.status = true;
+            });
           };
-          // If we are currently connected, then use the 'onDisconnect()'
-          // method to add a set which will only trigger once this
-          // client has disconnected by closing the app,
-          // losing internet, or any other means.
-          userStatusDatabaseRef.onDisconnect().set(isOfflineForDatabase).then(function() {
-            ref.set({
-              'status': false,
-              'updated': firebase.database.ServerValue.TIMESTAMP,
-            }, {
-              merge: true,
-            }).then(() => {
-              // Update successful.
-              console.log('User status updated');
-            }).catch((error) => {
-              // The document probably doesn't exist.
-              console.error('Error updating user status: ', error);
-            });
-            // The promise returned from .onDisconnect().set() will
-            // resolve as soon as the server acknowledges the onDisconnect()
-            // request, NOT once we've actually disconnected:
-            // https://firebase.google.com/docs/reference/js/firebase.database.OnDisconnect
-            // We can now safely set ourselves as "online" knowing that the
-            // server will mark us as offline once we lose connection.
-            userStatusDatabaseRef.set(isOnlineForDatabase).then(function() {
-              ref.set({
-                'status': true,
-                'updated': firebase.database.ServerValue.TIMESTAMP,
-              }, {
-                merge: true,
-              }).then(() => {
-                // Update successful.
-                console.log('User status updated');
-              }).catch((error) => {
-                // The document probably doesn't exist.
-                console.error('Error updating user status: ', error);
-              });
-            });
-          });
         });
+        userStatusDatabaseRef.onDisconnect().set(isOfflineForDatabase).then(() => {
+          this.status = false;
+        });
+
       }
     }
     window.customElements.define(UserStatus.is, UserStatus);
