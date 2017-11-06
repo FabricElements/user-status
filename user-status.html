@@ -10,7 +10,7 @@
       }
     </style>
     <firebase-auth signed-in="{{signedIn}}"
-        user="{{user}}">
+                   user="{{user}}">
     </firebase-auth>
   </template>
 
@@ -24,9 +24,16 @@
      * @demo demo/index.html
      */
     class UserStatus extends Polymer.Element {
+      /**
+       * @return {string}
+       */
       static get is() {
         return 'user-status';
       }
+
+      /**
+       * @return {object}
+       */
       static get properties() {
         return {
           status: {
@@ -46,6 +53,7 @@
           },
         };
       }
+
       /**
        * User observer
        *
@@ -55,33 +63,29 @@
       _userObserver(user) {
         if (!user) return;
         // https://firebase.google.com/docs/firestore/solutions/presence
-        // Create a reference to this user's specific status node.
-        // This is where we will store data about being online/offline.
-        const userStatusDatabaseRef = firebase.database().ref(`/user-status/${user.uid}`);
-        // We'll create two constants which we will write to
-        // the Realtime database when this device is offline
-        // or online.
+        const userStatusDatabaseRef = firebase.database()
+          .ref(`/user-status/${user.uid}`);
         const isOfflineForDatabase = {
-          state: "offline",
+          state: 'offline',
           last_changed: firebase.database.ServerValue.TIMESTAMP,
         };
         const isOnlineForDatabase = {
-          state: "online",
+          state: 'online',
           last_changed: firebase.database.ServerValue.TIMESTAMP,
         };
-        userStatusDatabaseRef.on("value", (snapshot) => {
+        userStatusDatabaseRef.on('value', (snapshot) => {
           if (snapshot.val().state !== 'online') {
             userStatusDatabaseRef.set(isOnlineForDatabase).then(() => {
               this.status = true;
             });
-          };
+          }
         });
         userStatusDatabaseRef.onDisconnect().set(isOfflineForDatabase).then(() => {
           this.status = false;
         });
-
       }
     }
+
     window.customElements.define(UserStatus.is, UserStatus);
 
   </script>
