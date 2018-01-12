@@ -98,7 +98,6 @@
        */
       init() {
         firebase.auth().onAuthStateChanged((user) => {
-          console.log('auth changed: ', user);
           if (!user) {
             // User just logged out.
             // If there was an onDisconect registed already, unsubscribe.
