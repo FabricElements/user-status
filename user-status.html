@@ -9,9 +9,6 @@
         display: block;
       }
     </style>
-    <firebase-auth signed-in="{{signedIn}}"
-                   user="{{user}}">
-    </firebase-auth>
   </template>
 
   <script>
@@ -32,61 +29,93 @@
       }
 
       /**
-       * @return {object}
+       * connectedCallback
        */
-      static get properties() {
-        return {
-          status: {
-            type: Boolean,
-            value: false,
-            notify: true,
-            reflectToAttribute: true,
-          },
-          signedIn: {
-            type: Boolean,
-            value: false,
-          },
-          user: {
-            type: Object,
-            value: {},
-            observer: '_userObserver',
-          },
-        };
+      connectedCallback() {
+        super.connectedCallback();
+        this.init();
       }
 
       /**
-       * User observer
+       * Push presence
        *
-       * @param {object} user
+       * @param {Object} user
        * @private
        */
-      _userObserver(user) {
-        if (!user) return;
+      _pushPresence(user) {
         // https://firebase.google.com/docs/firestore/solutions/presence
-        const userStatusDatabaseRef = firebase.database()
+        const userStatusDatabaseRef = firebase
+          .database()
           .ref(`/user-status/${user.uid}`);
+
         const isOfflineForDatabase = {
           state: 'offline',
           last_changed: firebase.database.ServerValue.TIMESTAMP,
         };
+
         const isOnlineForDatabase = {
           state: 'online',
           last_changed: firebase.database.ServerValue.TIMESTAMP,
         };
-        userStatusDatabaseRef.on('value', (snapshot) => {
-          if (snapshot.val().state !== 'online') {
-            userStatusDatabaseRef.set(isOnlineForDatabase).then(() => {
-              this.status = true;
+
+        // Create a reference to the special ".info/connected" path in
+        // Realtime Database. This path returns `true` when connected
+        // and `false` when disconnected.
+        this._unregisterOnConect = firebase
+          .database()
+          .ref('.info/connected')
+          .on('value', (snapshot) => {
+            // If we're not currently connected, don't do anything.
+            if (snapshot && snapshot.val() === false) return;
+
+            // If user is not currently connected, also don't do anything
+            if (!firebase.auth().currentUser) return;
+
+            // If we are currently connected, then use the 'onDisconnect()'
+            // method to add a set which will only trigger once this
+            // client has disconnected by closing the app,
+            // losing internet, or any other means.
+            return userStatusDatabaseRef
+              .onDisconnect()
+              .set(isOfflineForDatabase)
+              .then(() => {
+                // The promise returned from .onDisconnect().set() will
+                // resolve as soon as the server acknowledges the onDisconnect()
+                // request, NOT once we've actually disconnected:
+                // https://firebase.google.com/docs/reference/js/firebase.database.OnDisconnect
+
+                // We can now safely set ourselves as "online" knowing that the
+                // server will mark us as offline once we lose connection.
+                return userStatusDatabaseRef.set(isOnlineForDatabase);
             });
+          });
+      }
+
+      /**
+       * Init
+       *
+       * @private
+       */
+      init() {
+        firebase.auth().onAuthStateChanged((user) => {
+          console.log('auth changed: ', user);
+          if (!user) {
+            // User just logged out.
+            // If there was an onDisconect registed already, unsubscribe.
+            if (this._unregisterOnConect) this._unregisterOnConect();
+            // Just after user logs out, force disconection so firebase knows
+            // should save 'offline' on user-status store.
+            firebase.database().goOffline();
+            firebase.database().goOnline();
+          } else {
+            // User just logged in.
+            // push their presence until connection is dropped OR they log out.
+            this._pushPresence(user);
           }
-        });
-        userStatusDatabaseRef.onDisconnect().set(isOfflineForDatabase).then(() => {
-          this.status = false;
         });
       }
     }
 
     window.customElements.define(UserStatus.is, UserStatus);
-
   </script>
 </dom-module>

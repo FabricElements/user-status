@@ -17,6 +17,7 @@
   <link rel="import" href="../../polymerfire/polymerfire.html">
   <link rel="import" href="../../skeleton-auth/skeleton-auth.html">
   <link rel="import" href="../user-status.html">
+  <link rel="import" href="../../paper-button/paper-button.html">
 
   <custom-style>
     <style is="custom-style" include="demo-pages-shared-styles">
@@ -39,7 +40,12 @@
           <template>
             <skeleton-auth google></skeleton-auth>
           </template>
-      </dom-if>
+        </dom-if>
+        <dom-if if="[[signedIn]]">
+          <template>
+            <paper-button onclick="logDemoUserOut()">Log Out</paper-button>
+          </template>
+        </dom-if>
       </template>
     </dom-bind>
     <demo-snippet>
@@ -48,6 +54,17 @@
       </template>
     </demo-snippet>
   </div>
+
+  <script>
+    /* eslint-disable no-unused-vars*/
+
+    /**
+     * Sign Out
+    */
+    function logDemoUserOut() {
+      window.firebase.auth().signOut();
+    }
+  </script>
 </body>
 
 </html>
