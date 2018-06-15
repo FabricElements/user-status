@@ -11,7 +11,7 @@
     "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
     "web-component-tester": "Polymer/web-component-tester#^6.0.0",
     "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0",
-    "skeleton-auth": "FabricElements/skeleton-auth"
+    "skeleton-auth": "FabricElements/skeleton-auth#2.0"
   },
   "resolutions": {
     "polymer": "^2.0.0",
