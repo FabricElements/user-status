@@ -7,64 +7,54 @@
 
   <title>user-status demo</title>
 
-  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
+  <script src="../node_modules/firebase/firebase.js"></script>
+  <script src="../node_modules/@fabricelements/firebase-config/index.js"></script>
+  <script type="module">
+    import '@polymer/iron-demo-helpers/demo-pages-shared-styles.js';
+    import '@polymer/iron-demo-helpers/demo-snippet.js';
+    import '@polymer/polymer/lib/elements/dom-bind.js';
+    import '@polymer/paper-button/paper-button.js';
+    import '@fabricelements/skeleton-auth/skeleton-auth.js';
+  </script>
+  <script type="module" src="../user-status.js"></script>
 
-  <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
-  <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
-  <link rel="import" href="../../polymer/lib/elements/dom-bind.html">
-  <link rel="import" href="../../polymer/lib/elements/dom-repeat.html">
-  <link rel="import" href="../../polymer/lib/elements/dom-if.html">
-  <link rel="import" href="../../polymerfire/polymerfire.html">
-  <link rel="import" href="../../skeleton-auth/skeleton-auth.html">
-  <link rel="import" href="../user-status.html">
-  <link rel="import" href="../../paper-button/paper-button.html">
-
-  <custom-style>
-    <style is="custom-style" include="demo-pages-shared-styles">
-
-
-    </style>
+<custom-style>
+  <style is="custom-style" include="demo-pages-shared-styles"></style>
   </custom-style>
 </head>
 
 <body>
-  <firebase-app auth-domain="fabricelements.firebaseapp.com" database-url="https://fabricelements.firebaseio.com" api-key="AIzaSyCJRNdR0eodnswyi8MHCtF1YOjY235mhM8" storage-bucket="fabricelements.appspot.com" messaging-sender-id="908593247251" project-id="fabricelements"></firebase-app>
+
   <div class="vertical-section-container centered">
     <h3>Basic user-status demo</h3>
-    <dom-bind>
-      <template>
-        <firebase-auth signed-in="{{signedIn}}"
-                       user="{{user}}">
-        </firebase-auth>
-        <dom-if if="[[!signedIn]]">
-          <template>
-            <skeleton-auth google email anonymous></skeleton-auth>
-          </template>
-        </dom-if>
-        <dom-if if="[[signedIn]]">
-          <template>
-            <paper-button onclick="logDemoUserOut()">Log Out</paper-button>
-          </template>
-        </dom-if>
-      </template>
-    </dom-bind>
     <demo-snippet>
       <template>
-        <user-status></user-status>
+        <dom-bind>
+          <template>
+            <div hidden="[[signedIn]]">
+              <skeleton-auth google
+                             signed-in="{{signedIn}}"
+                             user="{{user}}"></skeleton-auth>
+            </div>
+            <user-status></user-status>
+            <paper-button hidden="[[!signedIn]]" onclick="logDemoUserOut()">Log Out</paper-button>
+          </template>
+        </dom-bind>
       </template>
     </demo-snippet>
   </div>
 
-  <script>
-    /* eslint-disable no-unused-vars*/
+<script>
+/* eslint-disable no-unused-vars*/
 
-    /**
-     * Sign Out
-    */
-    function logDemoUserOut() {
-      window.firebase.auth().signOut();
-    }
-  </script>
+/**
+ * Sign Out
+*/
+function logDemoUserOut() {
+  window.firebase.auth().signOut();
+}
+</script>
 </body>
-
 </html>
